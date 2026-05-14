@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { DigitalTwin, Personality } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
 
-router.post('/compare', async (req, res) => {
+router.post('/compare', aiRateLimiter, async (req, res) => {
   try {
     const { twin1Id, twin2Id } = req.body;
 

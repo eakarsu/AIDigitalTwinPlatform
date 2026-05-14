@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
 
-router.post('/summarize', async (req, res) => {
+router.post('/summarize', aiRateLimiter, async (req, res) => {
   try {
     const { text, style, maxLength } = req.body;
 

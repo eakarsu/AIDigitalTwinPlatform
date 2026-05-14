@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 class OpenRouterService {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
-    this.model = process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5';
+    this.model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022';
     this.baseUrl = 'https://openrouter.ai/api/v1';
   }
 
@@ -27,6 +27,26 @@ class OpenRouterService {
     });
     const data = await response.json();
     return data;
+  }
+
+  async chatStream(messages, options = {}) {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'http://localhost:3000',
+        'X-Title': 'AI Digital Twin Platform'
+      },
+      body: JSON.stringify({
+        model: options.model || this.model,
+        messages,
+        temperature: options.temperature || 0.7,
+        max_tokens: options.maxTokens || 1024,
+        stream: true,
+      })
+    });
+    return response;
   }
 
   extractContent(response) {
@@ -103,7 +123,7 @@ class OpenRouterService {
     };
   }
 
-  async generateResponse(twin, personality, conversationHistory, userMessage) {
+  async generateResponse(twin, personality, conversationHistory, userMessage, knowledgeEntries = []) {
     const personalityContext = personality ? `
 Your personality traits: ${JSON.stringify(personality.traits || {})}
 Communication style: ${personality.communicationStyle || 'Professional'}
@@ -113,11 +133,16 @@ Creativity level: ${personality.creativity || 0.5}
 Analytical skill: ${personality.analyticalSkill || 0.5}
 Empathy level: ${personality.empathy || 0.5}` : '';
 
+    const knowledgeContext = knowledgeEntries.length > 0 ? `
+
+Knowledge Base:
+${knowledgeEntries.map(e => `- ${e.title}: ${e.content}`).join('\n')}` : '';
+
     const systemPrompt = `You are "${twin.name}", a digital twin AI assistant.
 Description: ${twin.description || 'A helpful digital twin'}
 Industry: ${twin.industry || 'General'}
 Purpose: ${twin.purpose || 'To assist and provide expert guidance'}
-${personalityContext}
+${personalityContext}${knowledgeContext}
 
 Respond in character, maintaining your personality consistently. Be helpful, accurate, and engaging.
 Keep your responses concise but thorough.`;

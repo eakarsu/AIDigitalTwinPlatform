@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { DigitalTwin, User, Personality, Conversation, KnowledgeBase, BehaviorPattern, Sentiment, Memory, TrainingData, Analytics } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
@@ -63,8 +64,11 @@ router.post('/', async (req, res) => {
   try {
     const { name, description, avatar, status, personality, purpose, industry } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Name is required and must be a non-empty string' });
+    }
+    if (!description || typeof description !== 'string' || description.trim().length === 0) {
+      return res.status(400).json({ error: 'Description is required and must be a non-empty string' });
     }
 
     const twin = await DigitalTwin.create({
@@ -132,7 +136,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.post('/:id/generate-personality', async (req, res) => {
+router.post('/:id/generate-personality', aiRateLimiter, async (req, res) => {
   try {
     const twin = await DigitalTwin.findOne({
       where: { id: req.params.id, userId: req.user.id }

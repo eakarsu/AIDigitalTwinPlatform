@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { TrainingData, DigitalTwin } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
@@ -141,7 +142,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.post('/generate', async (req, res) => {
+router.post('/generate', aiRateLimiter, async (req, res) => {
   try {
     const { twinId, category } = req.body;
 

@@ -18,7 +18,22 @@ import TrainingData from './pages/TrainingData';
 import InteractionHistory from './pages/InteractionHistory';
 import TwinComparison from './pages/TwinComparison';
 import TextSummarizer from './pages/TextSummarizer';
+import AITools from './pages/AITools';
 import Settings from './pages/Settings';
+
+// // === Batch 02 Gaps & Frontend Mounts ===
+import CfContinuousTwinLearning from './pages/CfContinuousTwinLearning';
+import CfMultiTwinSocialDynamics from './pages/CfMultiTwinSocialDynamics';
+import CfEmotionalStateEvolution from './pages/CfEmotionalStateEvolution';
+import CfLongTermRelationshipModeling from './pages/CfLongTermRelationshipModeling';
+import CfCounterfactualAnalysis from './pages/CfCounterfactualAnalysis';
+import GapMissingGenerateConversationLearnFromInteractionPredict from './pages/GapMissingGenerateConversationLearnFromInteractionPredict';
+import GapNoConversationalAiBackendHookup from './pages/GapNoConversationalAiBackendHookup';
+import GapLimitedLlmProviderIntegrationOpenaiAnthropicOnlyStubs from './pages/GapLimitedLlmProviderIntegrationOpenaiAnthropicOnlyStubs';
+import GapNoRealTimeInteractionInterface from './pages/GapNoRealTimeInteractionInterface';
+import GapNoMultiUserGroupConversationSupport from './pages/GapNoMultiUserGroupConversationSupport';
+import GapNoPaymentBillingModule from './pages/GapNoPaymentBillingModule';
+import GapNoReportingBeyondStubs from './pages/GapNoReportingBeyondStubs';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -65,7 +80,22 @@ export default function App() {
         <Route path="/interactions" element={<ProtectedRoute><InteractionHistory /></ProtectedRoute>} />
         <Route path="/comparison" element={<ProtectedRoute><TwinComparison /></ProtectedRoute>} />
         <Route path="/summarizer" element={<ProtectedRoute><TextSummarizer /></ProtectedRoute>} />
+        <Route path="/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      
+        {/* // === Batch 02 Gaps & Frontend Mounts === */}
+        <Route path="/cf/continuous-twin-learning" element={<CfContinuousTwinLearning />} />
+        <Route path="/cf/multi-twin-social-dynamics" element={<CfMultiTwinSocialDynamics />} />
+        <Route path="/cf/emotional-state-evolution" element={<CfEmotionalStateEvolution />} />
+        <Route path="/cf/long-term-relationship-modeling" element={<CfLongTermRelationshipModeling />} />
+        <Route path="/cf/counterfactual-analysis" element={<CfCounterfactualAnalysis />} />
+        <Route path="/gap/missing-generate-conversation-learn-from-interaction-predict" element={<GapMissingGenerateConversationLearnFromInteractionPredict />} />
+        <Route path="/gap/no-conversational-ai-backend-hookup" element={<GapNoConversationalAiBackendHookup />} />
+        <Route path="/gap/limited-llm-provider-integration-openai-anthropic-only-stubs" element={<GapLimitedLlmProviderIntegrationOpenaiAnthropicOnlyStubs />} />
+        <Route path="/gap/no-real-time-interaction-interface" element={<GapNoRealTimeInteractionInterface />} />
+        <Route path="/gap/no-multi-user-group-conversation-support" element={<GapNoMultiUserGroupConversationSupport />} />
+        <Route path="/gap/no-payment-billing-module" element={<GapNoPaymentBillingModule />} />
+        <Route path="/gap/no-reporting-beyond-stubs" element={<GapNoReportingBeyondStubs />} />
       </Routes>
     </>
   );

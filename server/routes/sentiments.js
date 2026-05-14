@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Sentiment, DigitalTwin } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
@@ -140,7 +141,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.post('/analyze', async (req, res) => {
+router.post('/analyze', aiRateLimiter, async (req, res) => {
   try {
     const { twinId, text } = req.body;
 

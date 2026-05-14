@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Conversation, Message, DigitalTwin, Personality, User } = require('../models');
+const { Conversation, Message, DigitalTwin, Personality, User, KnowledgeBase } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
 const openRouterService = require('../services/openrouter');
 
 router.use(authMiddleware);
@@ -166,7 +167,7 @@ router.get('/:id/messages', async (req, res) => {
   }
 });
 
-router.post('/:id/messages', async (req, res) => {
+router.post('/:id/messages', aiRateLimiter, async (req, res) => {
   try {
     const conversation = await Conversation.findOne({
       where: { id: req.params.id, userId: req.user.id }
@@ -183,6 +184,15 @@ router.post('/:id/messages', async (req, res) => {
 
     const twin = await DigitalTwin.findByPk(conversation.twinId);
     const personality = await Personality.findOne({ where: { twinId: twin.id } });
+
+    // Fetch relevant knowledge base entries for context injection
+    const { Op } = require('sequelize');
+    const knowledgeEntries = await KnowledgeBase.findAll({
+      where: { twinId: twin.id, relevanceScore: { [Op.gt]: 0.5 } },
+      order: [['relevanceScore', 'DESC']],
+      limit: 3,
+      attributes: ['title', 'content']
+    });
 
     const userMessage = await Message.create({
       conversationId: conversation.id,
@@ -208,7 +218,8 @@ router.post('/:id/messages', async (req, res) => {
       twin,
       personality,
       conversationHistory.slice(0, -1),
-      content
+      content,
+      knowledgeEntries
     );
 
     const assistantMessage = await Message.create({
@@ -237,6 +248,132 @@ router.post('/:id/messages', async (req, res) => {
   } catch (err) {
     console.error('Send message error:', err);
     res.status(500).json({ error: 'Failed to send message', details: err.message });
+  }
+});
+
+router.post('/:id/messages/stream', aiRateLimiter, async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({
+      where: { id: req.params.id, userId: req.user.id }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    const { content } = req.body;
+    if (!content) {
+      return res.status(400).json({ error: 'Message content is required' });
+    }
+
+    const twin = await DigitalTwin.findByPk(conversation.twinId);
+    const personality = await Personality.findOne({ where: { twinId: twin.id } });
+
+    const { Op } = require('sequelize');
+    const knowledgeEntries = await KnowledgeBase.findAll({
+      where: { twinId: twin.id, relevanceScore: { [Op.gt]: 0.5 } },
+      order: [['relevanceScore', 'DESC']],
+      limit: 3,
+      attributes: ['title', 'content']
+    });
+
+    // Save user message
+    await Message.create({
+      conversationId: conversation.id,
+      role: 'user',
+      content,
+      tokens: null,
+      latency: null,
+      model: null
+    });
+
+    const previousMessages = await Message.findAll({
+      where: { conversationId: conversation.id },
+      order: [['createdAt', 'ASC']],
+      limit: 20
+    });
+
+    const personalityContext = personality ? `
+Your personality traits: ${JSON.stringify(personality.traits || {})}
+Communication style: ${personality.communicationStyle || 'Professional'}
+Temperament: ${personality.temperament || 'Balanced'}
+Values: ${JSON.stringify(personality.values || [])}` : '';
+
+    const knowledgeContext = knowledgeEntries.length > 0 ? `\n\nKnowledge Base:\n${knowledgeEntries.map(e => `- ${e.title}: ${e.content}`).join('\n')}` : '';
+
+    const systemPrompt = `You are "${twin.name}", a digital twin AI assistant.
+Description: ${twin.description || 'A helpful digital twin'}
+Industry: ${twin.industry || 'General'}
+Purpose: ${twin.purpose || 'To assist and provide expert guidance'}
+${personalityContext}${knowledgeContext}
+
+Respond in character, maintaining your personality consistently.`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...previousMessages.slice(0, -1).map(msg => ({ role: msg.role, content: msg.content })),
+      { role: 'user', content }
+    ];
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const streamResponse = await openRouterService.chatStream(messages, {
+      temperature: personality ? personality.creativity || 0.7 : 0.7
+    });
+
+    let fullContent = '';
+    const startTime = Date.now();
+
+    const decoder = new TextDecoder();
+    for await (const chunk of streamResponse.body) {
+      const text = decoder.decode(chunk, { stream: true });
+      const lines = text.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content || '';
+            if (delta) {
+              fullContent += delta;
+              res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+            }
+          } catch (e) {
+            // skip malformed chunks
+          }
+        }
+      }
+    }
+
+    // Save assistant message
+    const latency = (Date.now() - startTime) / 1000;
+    await Message.create({
+      conversationId: conversation.id,
+      role: 'assistant',
+      content: fullContent,
+      tokens: null,
+      latency,
+      model: openRouterService.model
+    });
+
+    const messageCount = await Message.count({ where: { conversationId: conversation.id } });
+    await conversation.update({ messageCount, lastMessageAt: new Date() });
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('Stream message error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to stream message', details: err.message });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.end();
+    }
   }
 });
 

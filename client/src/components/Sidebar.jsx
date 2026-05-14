@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiUsers, FiCpu, FiMessageSquare, FiDatabase,
   FiActivity, FiSmile, FiBarChart2, FiZap,
-  FiBookOpen, FiClock, FiGitBranch, FiFileText, FiSettings, FiBox,
+  FiBookOpen, FiClock, FiGitBranch, FiFileText, FiSettings, FiBox, FiTool,
   FiLogOut, FiMenu, FiX
 } from 'react-icons/fi';
 
@@ -22,7 +22,22 @@ const navItems = [
   { path: '/interactions', icon: FiClock, label: 'Interaction History' },
   { path: '/comparison', icon: FiGitBranch, label: 'Twin Comparison' },
   { path: '/summarizer', icon: FiFileText, label: 'Text Summarizer' },
+  { path: '/ai-tools', icon: FiTool, label: 'AI Tools' },
   { path: '/settings', icon: FiSettings, label: 'Settings' },
+,
+  // // === Batch 02 Gaps & Frontend Mounts ===
+  { path: '/cf/continuous-twin-learning', icon: '+', label: 'CF: ContinuousTwinLearning' },
+  { path: '/cf/multi-twin-social-dynamics', icon: '+', label: 'CF: MultiTwinSocialDynamics' },
+  { path: '/cf/emotional-state-evolution', icon: '+', label: 'CF: EmotionalStateEvolution' },
+  { path: '/cf/long-term-relationship-modeling', icon: '+', label: 'CF: LongTermRelationshipMode' },
+  { path: '/cf/counterfactual-analysis', icon: '+', label: 'CF: CounterfactualAnalysis' },
+  { path: '/gap/missing-generate-conversation-learn-from-interaction-predict', icon: '+', label: 'Gap: MissingGenerateConversat' },
+  { path: '/gap/no-conversational-ai-backend-hookup', icon: '+', label: 'Gap: NoConversationalAiBacken' },
+  { path: '/gap/limited-llm-provider-integration-openai-anthropic-only-stubs', icon: '+', label: 'Gap: LimitedLlmProviderIntegr' },
+  { path: '/gap/no-real-time-interaction-interface', icon: '+', label: 'Gap: NoRealTimeInteractionInt' },
+  { path: '/gap/no-multi-user-group-conversation-support', icon: '+', label: 'Gap: NoMultiUserGroupConversa' },
+  { path: '/gap/no-payment-billing-module', icon: '+', label: 'Gap: NoPaymentBillingModule' },
+  { path: '/gap/no-reporting-beyond-stubs', icon: '+', label: 'Gap: NoReportingBeyondStubs' }
 ];
 
 export default function Sidebar() {
