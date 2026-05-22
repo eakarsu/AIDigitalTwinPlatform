@@ -84,6 +84,7 @@ app.use('/api/ai', require('./routes/relationshipModel'));
 app.use('/api/ai', require('./routes/emotionEvolve'));
 app.use('/api/ai', require('./routes/multiTwinSocial'));
 app.use('/api/ai', require('./routes/continuousLearn'));
+app.use('/api/twin-drift-monitor', require('./routes/twinDriftMonitor'));
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', path: req.originalUrl });
 });

@@ -20,6 +20,7 @@ import TwinComparison from './pages/TwinComparison';
 import TextSummarizer from './pages/TextSummarizer';
 import AITools from './pages/AITools';
 import Settings from './pages/Settings';
+import TwinDriftMonitor from './pages/TwinDriftMonitor';
 
 // // === Batch 02 Gaps & Frontend Mounts ===
 import CfContinuousTwinLearning from './pages/CfContinuousTwinLearning';
@@ -34,6 +35,9 @@ import GapNoRealTimeInteractionInterface from './pages/GapNoRealTimeInteractionI
 import GapNoMultiUserGroupConversationSupport from './pages/GapNoMultiUserGroupConversationSupport';
 import GapNoPaymentBillingModule from './pages/GapNoPaymentBillingModule';
 import GapNoReportingBeyondStubs from './pages/GapNoReportingBeyondStubs';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -64,6 +68,9 @@ export default function App() {
         }}
       />
       <Routes>
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/twins" element={<ProtectedRoute><DigitalTwins /></ProtectedRoute>} />
@@ -82,6 +89,7 @@ export default function App() {
         <Route path="/summarizer" element={<ProtectedRoute><TextSummarizer /></ProtectedRoute>} />
         <Route path="/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/twin-drift-monitor" element={<ProtectedRoute><TwinDriftMonitor /></ProtectedRoute>} />
       
         {/* // === Batch 02 Gaps & Frontend Mounts === */}
         <Route path="/cf/continuous-twin-learning" element={<CfContinuousTwinLearning />} />
