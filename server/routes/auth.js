@@ -5,11 +5,12 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const { authMiddleware } = require('../middleware/auth');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ai-digital-twin-secret-key-2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) throw new Error('JWT_SECRET must be at least 32 characters');
 
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName, role } = req.body;
+    const { email, password, firstName, lastName } = req.body;
 
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ error: 'Email, password, firstName, and lastName are required' });
@@ -28,11 +29,12 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       firstName,
       lastName,
-      role: role || 'user'
+      role: 'user',
+      tenantId: 'default'
     });
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, tenantId: user.tenantId },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -75,7 +77,7 @@ router.post('/login', async (req, res) => {
     await user.update({ lastLogin: new Date() });
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, tenantId: user.tenantId },
       JWT_SECRET,
       { expiresIn: '24h' }
     );

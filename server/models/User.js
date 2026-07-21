@@ -31,6 +31,12 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('admin', 'user'),
     defaultValue: 'user'
   },
+  tenantId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'default',
+    field: 'tenant_id'
+  },
   avatar: {
     type: DataTypes.STRING,
     allowNull: true

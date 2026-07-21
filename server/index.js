@@ -24,6 +24,8 @@ const aiNewRoutes = require('./routes/aiNew');
 
 const app = express();
 const PORT = parseInt(process.env.BACKEND_PORT, 10) || 3001;
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) throw new Error('JWT_SECRET must be configured with at least 32 characters');
+if (!process.env.DATABASE_URL && !process.env.DB_PASSWORD) throw new Error('DATABASE_URL or DB_PASSWORD is required');
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
@@ -85,6 +87,7 @@ app.use('/api/ai', require('./routes/emotionEvolve'));
 app.use('/api/ai', require('./routes/multiTwinSocial'));
 app.use('/api/ai', require('./routes/continuousLearn'));
 app.use('/api/twin-drift-monitor', require('./routes/twinDriftMonitor'));
+app.use('/api/twin-operations', require('./routes/twinOperations'));
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', path: req.originalUrl });
 });
@@ -102,39 +105,7 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
 
-    // Sync mode is controlled by env to avoid destructive auto-alter in production
-    const syncMode = (process.env.SEQUELIZE_SYNC || 'safe').toLowerCase();
-    if (syncMode === 'alter') {
-      await sequelize.sync({ alter: true });
-      console.log('Database models synchronized (alter).');
-    } else if (syncMode === 'force') {
-      await sequelize.sync({ force: true });
-      console.log('Database models synchronized (force - data dropped).');
-    } else {
-      await sequelize.sync(); // create only missing tables
-      console.log('Database models synchronized (safe / create-if-missing).');
-    }
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-missing-generate-conversation-learn-from-interaction-predict', require('./routes/gap_missing_generate_conversation_learn_from_interaction_predict'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-conversational-ai-backend-hookup', require('./routes/gap_no_conversational_ai_backend_hookup'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-limited-llm-provider-integration-openai-anthropic-only-stubs', require('./routes/gap_limited_llm_provider_integration_openai_anthropic_only_stubs'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-real-time-interaction-interface', require('./routes/gap_no_real_time_interaction_interface'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-multi-user-group-conversation-support', require('./routes/gap_no_multi_user_group_conversation_support'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-payment-billing-module', require('./routes/gap_no_payment_billing_module'));
-
-// // === Batch 02 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-reporting-beyond-stubs', require('./routes/gap_no_reporting_beyond_stubs'));
+    // Schema changes are explicit migrations. Generated gap routers remain quarantined.
 
     app.listen(PORT, () => {
       console.log('='.repeat(50));
