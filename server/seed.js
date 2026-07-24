@@ -4,6 +4,12 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const { sequelize, User, DigitalTwin, Personality, Conversation, Message, KnowledgeBase, BehaviorPattern, Sentiment, Memory, TrainingData, Analytics } = require('./models');
 
+function requireDemoPassword() {
+  const password = process.env.DEMO_PASSWORD || process.env.SEED_DEMO_PASSWORD || process.env.DEMO_SEED_PASSWORD || '';
+  if (password.length < 12 || password.length > 1024) throw new Error('DEMO_PASSWORD must contain 12-1024 characters');
+  return password;
+}
+
 async function seed() {
   try {
     console.log('Starting database seed...');
@@ -18,8 +24,8 @@ async function seed() {
     // ============ USERS ============
     console.log('\nSeeding users...');
     const salt = await bcrypt.genSalt(10);
-    const adminPassword = await bcrypt.hash('admin123', salt);
-    const userPassword = await bcrypt.hash('user123', salt);
+    const adminPassword = await bcrypt.hash(requireDemoPassword(), salt);
+    const userPassword = await bcrypt.hash(requireDemoPassword(), salt);
 
     const admin = await User.create({
       email: 'admin@digitaltwin.com',
@@ -365,7 +371,7 @@ async function seed() {
     console.log(`  Analytics: ${analyticsData.length}`);
     console.log('='.repeat(50));
     console.log('\nDefault credentials:');
-    console.log('  Admin: admin@digitaltwin.com / admin123');
+    console.log('Demo login users provisioned from the local environment.');
     console.log('  User:  user@digitaltwin.com / user123');
     console.log('='.repeat(50));
 

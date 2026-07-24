@@ -4,6 +4,9 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import { FiMail, FiLock, FiZap } from 'react-icons/fi';
 
+const demoEmail = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' ? import.meta.env.VITE_DEMO_EMAIL || '' : '';
+const demoPassword = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' ? import.meta.env.VITE_DEMO_PASSWORD || '' : '';
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,11 +31,11 @@ export default function Login() {
   };
 
   const handleQuickLogin = async () => {
-    setEmail('admin@digitaltwin.com');
-    setPassword('admin123');
+    setEmail(demoEmail);
+    setPassword(demoPassword);
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/login', { email: 'admin@digitaltwin.com', password: 'admin123' });
+      const { data } = await api.post('/auth/login', { email: demoEmail, password: demoPassword });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       toast.success('Welcome back!');
@@ -88,7 +91,7 @@ export default function Login() {
           </button>
         </form>
         <div className="login-divider">or</div>
-        <button className="btn btn-secondary w-full" onClick={handleQuickLogin} disabled={loading}>
+        <button className="btn btn-secondary w-full" onClick={handleQuickLogin} disabled={loading || !demoEmail || !demoPassword}>
           <FiZap /> Quick Login (Demo)
         </button>
       </div>
