@@ -4,8 +4,8 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import { FiMail, FiLock, FiZap } from 'react-icons/fi';
 
-const demoEmail = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' ? import.meta.env.VITE_DEMO_EMAIL || '' : '';
-const demoPassword = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' ? import.meta.env.VITE_DEMO_PASSWORD || '' : '';
+const demoEmail = import.meta.env.VITE_DEMO_EMAIL || '';
+const demoPassword = import.meta.env.VITE_DEMO_PASSWORD || '';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -30,21 +30,9 @@ export default function Login() {
     }
   };
 
-  const handleQuickLogin = async () => {
+  const handleQuickLogin = () => {
     setEmail(demoEmail);
     setPassword(demoPassword);
-    setLoading(true);
-    try {
-      const { data } = await api.post('/auth/login', { email: demoEmail, password: demoPassword });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      toast.success('Welcome back!');
-      navigate('/');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -68,6 +56,7 @@ export default function Login() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                required
                 style={{ paddingLeft: 38 }}
               />
             </div>
@@ -82,6 +71,7 @@ export default function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                required
                 style={{ paddingLeft: 38 }}
               />
             </div>
@@ -91,8 +81,8 @@ export default function Login() {
           </button>
         </form>
         <div className="login-divider">or</div>
-        <button className="btn btn-secondary w-full" onClick={handleQuickLogin} disabled={loading || !demoEmail || !demoPassword}>
-          <FiZap /> Quick Login (Demo)
+        <button type="button" className="btn btn-secondary w-full" onClick={handleQuickLogin} disabled={loading || !demoEmail || !demoPassword} aria-label="Auto Fill Demo Credentials">
+          <FiZap /> Auto Fill Demo Credentials
         </button>
       </div>
     </div>

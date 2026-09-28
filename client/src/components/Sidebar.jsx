@@ -74,18 +74,21 @@ export default function Sidebar() {
           </div>
         </div>
         <nav className="sidebar-nav">
-          {navItems.map(item => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/'}
-              className={({ isActive }) => isActive ? 'active' : ''}
-              onClick={() => setMobileOpen(false)}
-            >
-              <item.icon />
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) => isActive ? 'active' : ''}
+                onClick={() => setMobileOpen(false)}
+              >
+                {typeof Icon === 'string' ? <span aria-hidden="true">{Icon}</span> : <Icon />}
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
         <div className="sidebar-user">
           <div className="sidebar-user-avatar">{initials}</div>
